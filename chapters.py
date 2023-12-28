@@ -1,39 +1,52 @@
 import os
 import json
-import re
 import tiktoken
 import openai
 from openai import OpenAI
 
+with open('OPENAI-KEY.txt', 'r') as file:
+    api_key = file.read().strip()
 
-client = OpenAI()
+client = OpenAI(api_key = api_key)
 
+OPENAI_MODEL = "gpt-3.5-turbo"
+MAX_TOKENS = 100
 
-OPENAI_MODEL = os.environ.get("OPENAI_MODEL")
-MAX_TOKENS = os.environ.get("MAX_TOKENS")
+# OPENAI_MODEL = os.environ.get("OPENAI_MODEL")
+# MAX_TOKENS = os.environ.get("MAX_TOKENS")
 
 def split_vtt_file(file_path, MAX_TOKENS):
     chunks = []
     with open(file_path, "r") as file:
         vtt_content = file.read().strip()
         vtt_segments = vtt_content.split("\n\n")
+        vtt_segments = vtt_segments[1:]
+        # print(vtt_segments[0:4])
 
         current_chunk = ""
+        
         for segment in vtt_segments:
+            # lines = ['timestamp', 'text']
             lines = segment.strip().split("\n")
+            #print(lines)
             # Merge all lines starting from the 3rd line
-            segment_text = " ".join(lines[2:])
-
+            segment_text = lines[1]
+            print("seg : ", segment_text)
             # Tiktokens to count total token length for the current chunk
             encoding = tiktoken.encoding_for_model(OPENAI_MODEL)
-            number_of_tokens = len(encoding.encode(segment_text))
-            # print(number_of_tokens)
+            tokens = encoding.encode(segment_text)
+            # print("tokens : ", tokens)
+            number_of_tokens = len(tokens)
+            print("no of tokens : ", number_of_tokens)
+            print("current chunk : ", current_chunk)
+            print("chunks : ", chunks)
 
             if len(current_chunk) + number_of_tokens <= int(MAX_TOKENS):
                 current_chunk += segment + "\n\n"
             else:
                 chunks.append(current_chunk.strip())
                 current_chunk = segment + "\n\n"
+
 
         if current_chunk:
             chunks.append(current_chunk.strip())
@@ -64,7 +77,7 @@ def generate_chapters(chunk):
                 "content": json.dumps(chunk),
             },
         ],
-        model=OPENAI_MODEL,
+        model = OPENAI_MODEL,
     )
     res = chat_completion.choices[0].message.content
     return res
