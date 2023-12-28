@@ -10,7 +10,7 @@ with open('OPENAI-KEY.txt', 'r') as file:
 client = OpenAI(api_key = api_key)
 
 OPENAI_MODEL = "gpt-3.5-turbo"
-MAX_TOKENS = 100
+MAX_TOKENS = 3277
 
 # OPENAI_MODEL = os.environ.get("OPENAI_MODEL")
 # MAX_TOKENS = os.environ.get("MAX_TOKENS")
